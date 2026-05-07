@@ -346,6 +346,17 @@ int MbdCalibReco::process_event(PHCompositeNode * /*topNode*/)
     }
 
     Short_t pmtno = pmt->get_pmt();
+    if ( pmtno<0 || pmtno>128 )
+    {
+      static int counter = 0;
+      if ( counter<10 )
+      {
+        std::cerr << PHWHERE << " invalide pmt no " << pmtno << std::endl;
+        counter++;
+      }
+      continue;
+    }
+
     Float_t q = pmt->get_q();
     Float_t tt  = pmt->get_tt();
     Float_t tq  = pmt->get_tq();
