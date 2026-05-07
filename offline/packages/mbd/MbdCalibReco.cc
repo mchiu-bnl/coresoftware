@@ -346,7 +346,7 @@ int MbdCalibReco::process_event(PHCompositeNode * /*topNode*/)
     }
 
     Short_t pmtno = pmt->get_pmt();
-    if ( pmtno<0 || pmtno>128 )
+    if ( pmtno<0 || pmtno>=MbdDefs::MBD_N_PMT )
     {
       static int counter = 0;
       if ( counter<10 )
