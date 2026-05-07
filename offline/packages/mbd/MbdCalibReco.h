@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <THnSparse.h>
 
 class PHCompositeNode;
 class MbdCalib;
@@ -32,7 +33,7 @@ class MbdCalibReco : public SubsysReco
   int Init(PHCompositeNode* topNode) override;
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
-  int End(PHCompositeNode* topNode) override;
+  int EndRun(const int runnumber) override;
 
   void SetSubPass(const int s)          { _subpass = s; }
   void SetCalDir(const std::string& d)  { _caldir = d; }
@@ -41,12 +42,6 @@ class MbdCalibReco : public SubsysReco
  private:
   int  getNodes(PHCompositeNode* topNode);
   void InitHistos();
-  int  getRunType() const;
-
-  void FitAndWriteT0();
-  void FitAndWriteSlew();
-
-  void FindTH2Ridge(const TH2* h2, TGraphErrors*& gridge, TGraphErrors*& grms) const;
 
   uint64_t    _mbias_trigger_mask{0};
 
@@ -56,7 +51,7 @@ class MbdCalibReco : public SubsysReco
   std::string _rundir;   // _caldir/<runnumber>/
   std::string _cdbtag{}; // non-empty → download from CDB instead of local files
 
-  MbdCalib*        _mbdcal{nullptr};
+  std::unique_ptr<MbdCalib> _mbdcal;
   MbdPmtContainer* _mbdpmts{nullptr};
   MbdOut*          _mbdout{nullptr};
   MbdGeom*         _mbdgeom{nullptr};
@@ -67,7 +62,7 @@ class MbdCalibReco : public SubsysReco
   std::array<TH1*, MbdDefs::MBD_N_PMT> h_tt{};
   std::array<TH1*, MbdDefs::MBD_N_PMT> h_tq{};
   std::array<TH1*, MbdDefs::MBD_N_PMT> h_qp{};
-  std::array<TH2*, MbdDefs::MBD_N_PMT> h2_slew{};
+  std::array<THnSparseF*, MbdDefs::MBD_N_PMT> h2_slew{};
   TH2* h2_tt{nullptr};
   TH2* h2_tq{nullptr};
 
