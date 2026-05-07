@@ -41,7 +41,8 @@ class MbdCalibReco : public SubsysReco
 
  private:
   int  getNodes(PHCompositeNode* topNode);
-  void InitHistos();
+  void BookHistograms();
+  void DeleteHistograms();
 
   uint64_t    _mbias_trigger_mask{0};
 

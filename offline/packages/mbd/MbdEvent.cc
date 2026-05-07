@@ -300,45 +300,42 @@ int MbdEvent::InitRun()
 
     // zero out the tt_t0, tq_t0, and gains to produce uncalibrated time and charge
     // or load pass2 calibs from local file for calpass2+, if local files exist
-    if ( _calpass>1 )
+    std::string calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_tt_t0.calib";
+    if ( std::filesystem::exists(calfname) )
     {
-      std::string calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_tt_t0.calib";
-      if ( std::filesystem::exists(calfname) )
-      {
-        std::cout << "Loading local mbd_tt_t0, " << calfname << std::endl;
-        _mbdcal->Download_TTT0( calfname );
-      }
-      else
-      {
-        _mbdcal->Reset_TTT0();
-        std::cout << PHWHERE << "local mbd_tt_t0 not found, reset to 0: " << calfname << std::endl;
-      }
-
-      calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_tq_t0.calib";
-      if ( std::filesystem::exists(calfname) )
-      {
-        std::cout << "Loading local mbd_tq_t0, " << calfname << std::endl;
-        _mbdcal->Download_TQT0( calfname );
-      }
-      else
-      {
-        _mbdcal->Reset_TQT0();
-        std::cout << PHWHERE << "local mbd_tq_t0 not found, reset to 0: " << calfname << std::endl;
-      }
-
-      calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_qfit.calib";
-      if ( std::filesystem::exists(calfname) )
-      {
-        std::cout << "Loading local mbd_qfit, " << calfname << std::endl;
-        _mbdcal->Download_Gains( calfname );
-      }
-      else
-      {
-        _mbdcal->Reset_Gains();
-        std::cout << PHWHERE << "local mbd_gains not found, reset to 1: " << calfname << std::endl;
-      }
-
+      std::cout << "Loading local mbd_tt_t0, " << calfname << std::endl;
+      _mbdcal->Download_TTT0( calfname );
     }
+    else
+    {
+      _mbdcal->Reset_TTT0();
+      std::cout << PHWHERE << "local mbd_tt_t0 not found, reset to 0: " << calfname << std::endl;
+    }
+
+    calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_tq_t0.calib";
+    if ( std::filesystem::exists(calfname) )
+    {
+      std::cout << "Loading local mbd_tq_t0, " << calfname << std::endl;
+      _mbdcal->Download_TQT0( calfname );
+    }
+    else
+    {
+      _mbdcal->Reset_TQT0();
+      std::cout << PHWHERE << "local mbd_tq_t0 not found, reset to 0: " << calfname << std::endl;
+    }
+
+    calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_qfit.calib";
+    if ( std::filesystem::exists(calfname) )
+    {
+      std::cout << "Loading local mbd_qfit, " << calfname << std::endl;
+      _mbdcal->Download_Gains( calfname );
+    }
+    else
+    {
+      _mbdcal->Reset_Gains();
+      std::cout << PHWHERE << "local mbd_gains not found, reset to 1: " << calfname << std::endl;
+    }
+
 
     TDirectory *orig_dir = gDirectory;
 

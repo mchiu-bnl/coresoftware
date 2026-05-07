@@ -168,7 +168,7 @@ int MbdCalibReco::InitRun(PHCompositeNode *topNode)
   }
   std::cout << Name() << ": output file " << outfname << std::endl;
 
-  InitHistos();
+  BookHistograms();
 
   origdir->cd();
 
@@ -232,8 +232,15 @@ int MbdCalibReco::getNodes(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void MbdCalibReco::InitHistos()
+void MbdCalibReco::BookHistograms()
 {
+  // Delete histograms if they have already have been booked.
+  if ( h2_tt )
+  {
+    DeleteHistograms();
+    return;
+  }
+
   for (int ipmt = 0; ipmt < MbdDefs::MBD_N_PMT; ipmt++)
   {
     std::string sn = std::to_string(ipmt);
@@ -269,6 +276,24 @@ void MbdCalibReco::InitHistos()
   h2_tq = new TH2F("h2_tq", "ch vs tq", 900, -150., 150., MbdDefs::MBD_N_PMT, -0.5, MbdDefs::MBD_N_PMT - 0.5);
   h2_tq->SetXTitle("tq [ns]");
   h2_tq->SetYTitle("pmt ch");
+}
+
+void MbdCalibReco::DeleteHistograms()
+{
+  for (int ipmt = 0; ipmt < MbdDefs::MBD_N_PMT; ipmt++)
+  {
+    if ( h_tt[ipmt] ) delete h_tt[ipmt];
+    if ( h_tq[ipmt] ) delete h_tq[ipmt];
+    if ( h_qp[ipmt] ) delete h_qp[ipmt];
+
+    if ( h2_slew[ipmt] )
+    {
+      delete h2_slew[ipmt];
+    }
+  }
+
+  if ( h2_tt ) delete h2_tt;
+  if ( h2_tq ) delete h2_tq;
 }
 
 int MbdCalibReco::process_event(PHCompositeNode * /*topNode*/)
