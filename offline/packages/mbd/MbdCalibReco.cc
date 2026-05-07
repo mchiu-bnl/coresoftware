@@ -282,18 +282,26 @@ void MbdCalibReco::DeleteHistograms()
 {
   for (int ipmt = 0; ipmt < MbdDefs::MBD_N_PMT; ipmt++)
   {
-    if ( h_tt[ipmt] ) delete h_tt[ipmt];
-    if ( h_tq[ipmt] ) delete h_tq[ipmt];
-    if ( h_qp[ipmt] ) delete h_qp[ipmt];
-
+    if ( h_tt[ipmt] )
+    {
+      delete h_tt[ipmt];
+    }
+    if ( h_tq[ipmt] )
+    {
+      delete h_tq[ipmt];
+    }
+    if ( h_qp[ipmt] )
+    {
+      delete h_qp[ipmt];
+    }
     if ( h2_slew[ipmt] )
     {
       delete h2_slew[ipmt];
     }
   }
 
-  if ( h2_tt ) delete h2_tt;
-  if ( h2_tq ) delete h2_tq;
+  delete h2_tt;
+  delete h2_tq;
 }
 
 int MbdCalibReco::process_event(PHCompositeNode * /*topNode*/)
