@@ -82,7 +82,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_chi2 = "fraction";
 
   std::string calibdir_chi2;
-  if (use_directURL_chi2)
+  if (!m_directURL_chi2.empty())
   {
     calibdir_chi2 = m_directURL_chi2;
     std::cout << "CaloTowerStatus::InitRun: Using direct URL override for chi2: " << calibdir_chi2 << std::endl;
@@ -119,7 +119,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_z_score = m_detector + "_sigma";
 
   std::string calibdir_hotMap;
-  if (use_directURL_hotMap)
+  if (!m_directURL_hotMap.empty())
   {
     calibdir_hotMap = m_directURL_hotMap;
     std::cout << "CaloTowerStatus::InitRun: Using direct URL override for hot map: " << calibdir_hotMap << std::endl;
