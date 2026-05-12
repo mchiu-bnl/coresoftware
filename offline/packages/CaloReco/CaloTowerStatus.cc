@@ -133,7 +133,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
       m_cdbttree_hotMap = new CDBTTree(calibdir_hotMap);
       if (Verbosity() > 1)
       {
-        std::cout << "CaloTowerStatus::Init " << m_detector << "  hot map found " << m_calibName_hotMap << " Ddoing isHot" << std::endl;
+        std::cout << "CaloTowerStatus::Init " << m_detector << "  hot map found " << m_calibName_hotMap << " Doing isHot" << std::endl;
       }
     }
     else
