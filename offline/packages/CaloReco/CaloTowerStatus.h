@@ -71,13 +71,11 @@ class CaloTowerStatus : public SubsysReco
   void set_directURL_hotMap(const std::string &str)
   {
     m_directURL_hotMap = str;
-    use_directURL_hotMap = true;
     return;
   }
   void set_directURL_chi2(const std::string &str)
   {
     m_directURL_chi2 = str;
-    use_directURL_chi2 = true;
     return;
   }
   void set_doAbortNoHotMap(bool status = true)
@@ -121,8 +119,6 @@ class CaloTowerStatus : public SubsysReco
 
   std::string m_directURL_hotMap;
   std::string m_directURL_chi2;
-  bool use_directURL_hotMap{false};
-  bool use_directURL_chi2{false};
 
   float badChi2_treshold_const = {1e4};
   float badChi2_treshold_quadratic = {1./100};

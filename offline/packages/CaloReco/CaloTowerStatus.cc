@@ -81,22 +81,23 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_calibName_chi2 = m_detector + "_hotTowers_fracBadChi2";
   m_fieldname_chi2 = "fraction";
 
-  std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_chi2);
-  if (!calibdir.empty())
+  std::string calibdir_chi2;
+  if (!m_directURL_chi2.empty())
   {
-     m_cdbttree_chi2 = new CDBTTree(calibdir);
-    if (Verbosity() > 0)
-    {
-       std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_chi2 << "  Doing isHot for frac bad chi2" << std::endl;
-    }
+    calibdir_chi2 = m_directURL_chi2;
+    std::cout << "CaloTowerStatus::InitRun: Using direct URL override for chi2: " << calibdir_chi2 << std::endl;
+    m_cdbttree_chi2 = new CDBTTree(calibdir_chi2);
   }
   else
   {
-    if (use_directURL_chi2)
+    calibdir_chi2 = CDBInterface::instance()->getUrl(m_calibName_chi2);
+    if (!calibdir_chi2.empty())
     {
-      calibdir = m_directURL_chi2;
-      std::cout << "CaloTowerStatus::InitRun: Using default hotBadChi2" << calibdir << std::endl;
-      m_cdbttree_chi2 = new CDBTTree(calibdir);
+      m_cdbttree_chi2 = new CDBTTree(calibdir_chi2);
+      if (Verbosity() > 0)
+      {
+        std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_chi2 << "  Doing isHot for frac bad chi2" << std::endl;
+      }
     }
     else 
     {
@@ -117,30 +118,31 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_hotMap = "status";
   m_fieldname_z_score = m_detector + "_sigma";
 
-  calibdir = CDBInterface::instance()->getUrl(m_calibName_hotMap);
-  if (!calibdir.empty())
+  std::string calibdir_hotMap;
+  if (!m_directURL_hotMap.empty())
   {
-    m_cdbttree_hotMap = new CDBTTree(calibdir);
-    if (Verbosity() > 1)
-    {
-      std::cout << "CaloTowerStatus::Init " << m_detector << "  hot map found " << m_calibName_hotMap << " Ddoing isHot" << std::endl;
-    }
+    calibdir_hotMap = m_directURL_hotMap;
+    std::cout << "CaloTowerStatus::InitRun: Using direct URL override for hot map: " << calibdir_hotMap << std::endl;
+    m_cdbttree_hotMap = new CDBTTree(calibdir_hotMap);
   }
   else
   {
-    if (m_doAbortNoHotMap)
+    calibdir_hotMap = CDBInterface::instance()->getUrl(m_calibName_hotMap);
+    if (!calibdir_hotMap.empty())
     {
-      std::cout << "CaloTowerStatus::InitRun: No hot map found for " << m_calibName_hotMap << " and abort mode is set. Exiting." << std::endl;
-      gSystem->Exit(1);
-    }
-    if (use_directURL_hotMap)
-    {
-      calibdir = m_directURL_hotMap;
-      std::cout << "CaloTowerStatus::InitRun: Using default map " << calibdir << std::endl;
-      m_cdbttree_hotMap = new CDBTTree(calibdir);
+      m_cdbttree_hotMap = new CDBTTree(calibdir_hotMap);
+      if (Verbosity() > 1)
+      {
+        std::cout << "CaloTowerStatus::Init " << m_detector << "  hot map found " << m_calibName_hotMap << " Doing isHot" << std::endl;
+      }
     }
     else
     {
+      if (m_doAbortNoHotMap)
+      {
+        std::cout << "CaloTowerStatus::InitRun: No hot map found for " << m_calibName_hotMap << " and abort mode is set. Exiting." << std::endl;
+        gSystem->Exit(1);
+      }
       m_doHotMap = false;
       if (Verbosity() > 1)
       {
