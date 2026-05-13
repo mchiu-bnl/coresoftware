@@ -98,9 +98,6 @@ class CaloTowerStatus : public SubsysReco
  private:
   TowerInfoContainer *m_raw_towers{nullptr};
 
-  CDBTTree *m_cdbttree_chi2{nullptr};
-  CDBTTree *m_cdbttree_hotMap{nullptr};
-
   bool m_doHotChi2{true};
   bool m_doHotMap{true};
   bool m_doAbortNoHotMap{false};
@@ -127,7 +124,7 @@ class CaloTowerStatus : public SubsysReco
   float z_score_threshold = {5};
   float z_score_threshold_default = {5};
 
-  void LoadCalib();
+  void LoadCalib(CDBTTree *cdbttree_chi2, CDBTTree *cdbttree_hotMap);
 
   struct CDBInfo
   {

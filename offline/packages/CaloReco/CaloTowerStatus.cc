@@ -47,8 +47,6 @@ CaloTowerStatus::~CaloTowerStatus()
   {
     std::cout << "CaloTowerStatus::~CaloTowerStatus() Calling dtor" << std::endl;
   }
-  delete m_cdbttree_chi2;
-  delete m_cdbttree_hotMap;
 }
 
 //____________________________________________________________________________..
@@ -78,6 +76,8 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     m_detector = "SEPD";
   }
 
+  CDBTTree *cdbttree_chi2 = nullptr;
+
   m_calibName_chi2 = m_detector + "_hotTowers_fracBadChi2";
   m_fieldname_chi2 = "fraction";
 
@@ -86,20 +86,20 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   {
     calibdir_chi2 = m_directURL_chi2;
     std::cout << "CaloTowerStatus::InitRun: Using direct URL override for chi2: " << calibdir_chi2 << std::endl;
-    m_cdbttree_chi2 = new CDBTTree(calibdir_chi2);
+    cdbttree_chi2 = new CDBTTree(calibdir_chi2);
   }
   else
   {
     calibdir_chi2 = CDBInterface::instance()->getUrl(m_calibName_chi2);
     if (!calibdir_chi2.empty())
     {
-      m_cdbttree_chi2 = new CDBTTree(calibdir_chi2);
+      cdbttree_chi2 = new CDBTTree(calibdir_chi2);
       if (Verbosity() > 0)
       {
         std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_chi2 << "  Doing isHot for frac bad chi2" << std::endl;
       }
     }
-    else 
+    else
     {
       if (m_doAbortNoChi2)
       {
@@ -114,6 +114,8 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  CDBTTree *cdbttree_hotMap = nullptr;
+
   m_calibName_hotMap = m_detector + "_BadTowerMap";
   m_fieldname_hotMap = "status";
   m_fieldname_z_score = m_detector + "_sigma";
@@ -123,14 +125,14 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   {
     calibdir_hotMap = m_directURL_hotMap;
     std::cout << "CaloTowerStatus::InitRun: Using direct URL override for hot map: " << calibdir_hotMap << std::endl;
-    m_cdbttree_hotMap = new CDBTTree(calibdir_hotMap);
+    cdbttree_hotMap = new CDBTTree(calibdir_hotMap);
   }
   else
   {
     calibdir_hotMap = CDBInterface::instance()->getUrl(m_calibName_hotMap);
     if (!calibdir_hotMap.empty())
     {
-      m_cdbttree_hotMap = new CDBTTree(calibdir_hotMap);
+      cdbttree_hotMap = new CDBTTree(calibdir_hotMap);
       if (Verbosity() > 1)
       {
         std::cout << "CaloTowerStatus::Init " << m_detector << "  hot map found " << m_calibName_hotMap << " Doing isHot" << std::endl;
@@ -148,7 +150,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
       {
         std::cout << "CaloTowerStatus::InitRun hot map info, " << m_calibName_hotMap << " not found, not doing isHot" << std::endl;
       }
-    }  
+    }
   }
 
   if (Verbosity() > 0)
@@ -170,7 +172,10 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   try
   {
     CreateNodeTree(topNode);
-    LoadCalib();
+    LoadCalib(cdbttree_chi2, cdbttree_hotMap);
+
+    delete cdbttree_chi2;
+    delete cdbttree_hotMap;
   }
   catch (std::exception &e)
   {
@@ -184,7 +189,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void CaloTowerStatus::LoadCalib()
+void CaloTowerStatus::LoadCalib(CDBTTree *cdbttree_chi2, CDBTTree *cdbttree_hotMap)
 {
   unsigned int ntowers = m_raw_towers->size();
   m_cdbInfo_vec.resize(ntowers);
@@ -193,14 +198,14 @@ void CaloTowerStatus::LoadCalib()
   {
     unsigned int key = m_raw_towers->encode_key(channel);
 
-    if (m_doHotChi2)
+    if (m_doHotChi2 && cdbttree_chi2)
     {
-      m_cdbInfo_vec[channel].fraction_badChi2 = m_cdbttree_chi2->GetFloatValue(key, m_fieldname_chi2);
+      m_cdbInfo_vec[channel].fraction_badChi2 = cdbttree_chi2->GetFloatValue(key, m_fieldname_chi2);
     }
-    if (m_doHotMap)
+    if (m_doHotMap && cdbttree_hotMap)
     {
-      m_cdbInfo_vec[channel].hotMap_val = m_cdbttree_hotMap->GetIntValue(key, m_fieldname_hotMap);
-      m_cdbInfo_vec[channel].z_score = m_cdbttree_hotMap->GetFloatValue(key, m_fieldname_z_score);
+      m_cdbInfo_vec[channel].hotMap_val = cdbttree_hotMap->GetIntValue(key, m_fieldname_hotMap);
+      m_cdbInfo_vec[channel].z_score = cdbttree_hotMap->GetFloatValue(key, m_fieldname_z_score);
     }
   }
 }
