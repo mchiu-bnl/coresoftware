@@ -234,12 +234,30 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
-    if (( hotMap_val == 1 || // dead
-          std::fabs(z_score) > z_score_threshold || // hot or cold
-          (hotMap_val == 3 && z_score >= -1 * z_score_threshold_default)) // cold part 2
-          && m_doHotMap)
+    if (m_doHotMap)
     {
-      m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
+      bool is_hot_tower = false;
+
+      // 1. Default behavior: simply rely on the hotMap value
+      if (z_score_threshold == z_score_threshold_default)
+      {
+        is_hot_tower = (hotMap_val != 0);
+      }
+      // 2. Custom behavior: evaluate based on the custom z_score threshold
+      else
+      {
+        bool is_dead = (hotMap_val == 1);
+        bool exceeds_zscore_limit = (std::abs(z_score) > z_score_threshold);                      // Captures both hot and cold by sigma
+        bool is_low_yield_cold = (hotMap_val == 3 && z_score >= -1 * z_score_threshold_default);  // Captures the mean-based cold towers
+
+        is_hot_tower = (is_dead || exceeds_zscore_limit || is_low_yield_cold);
+      }
+
+      // Apply the result
+      if (is_hot_tower)
+      {
+        m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
+      }
     }
     if (chi2 > std::min(std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic),badChi2_treshold_max))
     {
