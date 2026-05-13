@@ -238,10 +238,10 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       bool is_hot_tower = false;
 
-      // 1. Default behavior: simply rely on the hotMap value
+      // 1. Default behavior: rely on valid positive hotMap status codes only
       if (z_score_threshold == z_score_threshold_default)
       {
-        is_hot_tower = (hotMap_val != 0);
+        is_hot_tower = (hotMap_val > 0);
       }
       // 2. Custom behavior: evaluate based on the custom z_score threshold
       else
