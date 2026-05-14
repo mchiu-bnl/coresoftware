@@ -8,27 +8,17 @@
 
 #include <ffamodules/CDBInterface.h>
 
-#include <ffaobjects/EventHeader.h>
-
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>    // for PHIODataNode
-#include <phool/PHNode.h>          // for PHNode
-#include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>
-#include <phool/recoConsts.h>
 
 #include <TSystem.h>
 
+#include <algorithm>
 #include <cmath>
-#include <cstdlib>    // for exit
-#include <exception>  // for exception
-#include <iostream>   // for operator<<, basic_ostream
-#include <stdexcept>  // for runtime_error
+#include <iostream>  // for operator<<, basic_ostream
 
 //____________________________________________________________________________..
 CaloTowerStatus::CaloTowerStatus(const std::string &name)
@@ -41,19 +31,8 @@ CaloTowerStatus::CaloTowerStatus(const std::string &name)
 }
 
 //____________________________________________________________________________..
-CaloTowerStatus::~CaloTowerStatus()
-{
-  if (Verbosity() > 0)
-  {
-    std::cout << "CaloTowerStatus::~CaloTowerStatus() Calling dtor" << std::endl;
-  }
-}
-
-//____________________________________________________________________________..
 int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
 {
-  PHNodeIterator nodeIter(topNode);
-
   if (m_dettype == CaloTowerDefs::CEMC)
   {
     m_detector = "CEMC";
@@ -76,21 +55,19 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     m_detector = "SEPD";
   }
 
-  CDBTTree *cdbttree_chi2 = nullptr;
+  CDBTTree *cdbttree_chi2{nullptr};
 
   m_calibName_chi2 = m_detector + "_hotTowers_fracBadChi2";
   m_fieldname_chi2 = "fraction";
 
-  std::string calibdir_chi2;
   if (!m_directURL_chi2.empty())
   {
-    calibdir_chi2 = m_directURL_chi2;
-    std::cout << "CaloTowerStatus::InitRun: Using direct URL override for chi2: " << calibdir_chi2 << std::endl;
-    cdbttree_chi2 = new CDBTTree(calibdir_chi2);
+    std::cout << "CaloTowerStatus::InitRun: Using direct URL override for chi2: " << m_directURL_chi2 << std::endl;
+    cdbttree_chi2 = new CDBTTree(m_directURL_chi2);
   }
   else
   {
-    calibdir_chi2 = CDBInterface::instance()->getUrl(m_calibName_chi2);
+    std::string calibdir_chi2 = CDBInterface::instance()->getUrl(m_calibName_chi2);
     if (!calibdir_chi2.empty())
     {
       cdbttree_chi2 = new CDBTTree(calibdir_chi2);
@@ -155,33 +132,16 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    std::cout << "CaloTowerStatus::Init " << m_detector << "  doing hotBadChi2=" <<  std::boolalpha << m_doHotChi2 << " doing hot map=" << std::boolalpha << m_doHotMap << std::endl;
+    std::cout << "CaloTowerStatus::Init " << m_detector << "  doing hotBadChi2=" << std::boolalpha << m_doHotChi2 << " doing hot map=" << std::boolalpha << m_doHotMap << std::endl;
   }
 
-  PHNodeIterator iter(topNode);
+  LoadCalib(cdbttree_chi2, cdbttree_hotMap);
 
-  // Looking for the DST node
-  PHCompositeNode *dstNode;
-  dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode)
-  {
-    std::cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
-              << "DST Node missing, doing nothing." << std::endl;
-    exit(1);
-  }
-  try
-  {
-    CreateNodeTree(topNode);
-    LoadCalib(cdbttree_chi2, cdbttree_hotMap);
+  delete cdbttree_chi2;
+  delete cdbttree_hotMap;
 
-    delete cdbttree_chi2;
-    delete cdbttree_hotMap;
-  }
-  catch (std::exception &e)
-  {
-    std::cout << e.what() << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
+  CreateNodeTree(topNode);
+
   if (Verbosity() > 0)
   {
     topNode->print();
@@ -264,7 +224,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
         m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
       }
     }
-    if (chi2 > std::min(std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic),badChi2_treshold_max))
+    if (chi2 > std::min(std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic), badChi2_treshold_max))
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
     }
@@ -283,10 +243,9 @@ void CaloTowerStatus::CreateNodeTree(PHCompositeNode *topNode)
   if (!m_raw_towers)
   {
     std::cout << Name() << "::" << m_detector.c_str() << "::" << __PRETTY_FUNCTION__
-              << " " << RawTowerNodeName << " Node missing, doing bail out!"
+              << " " << RawTowerNodeName << " Node missing, exiting!"
               << std::endl;
-    throw std::runtime_error(
-        "Failed to find " + RawTowerNodeName + " node in CaloTowerStatus::CreateNodes");
+    gSystem->Exit(1);
   }
 
   return;
