@@ -55,6 +55,8 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     m_detector = "SEPD";
   }
 
+  CreateNodeTree(topNode);
+
   CDBTTree *cdbttree_chi2{nullptr};
 
   m_calibName_chi2 = m_detector + "_hotTowers_fracBadChi2";
@@ -139,8 +141,6 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
 
   delete cdbttree_chi2;
   delete cdbttree_hotMap;
-
-  CreateNodeTree(topNode);
 
   if (Verbosity() > 0)
   {
