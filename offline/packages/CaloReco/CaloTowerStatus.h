@@ -5,11 +5,8 @@
 
 #include "CaloTowerDefs.h"
 
-#include <calobase/TowerInfoContainer.h>  // for TowerInfoContainer, TowerIn...
-
 #include <fun4all/SubsysReco.h>
 
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -22,7 +19,7 @@ class CaloTowerStatus : public SubsysReco
  public:
   CaloTowerStatus(const std::string &name = "CaloTowerStatus");
 
-  ~CaloTowerStatus() override;
+  ~CaloTowerStatus() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -98,9 +95,6 @@ class CaloTowerStatus : public SubsysReco
  private:
   TowerInfoContainer *m_raw_towers{nullptr};
 
-  CDBTTree *m_cdbttree_chi2{nullptr};
-  CDBTTree *m_cdbttree_hotMap{nullptr};
-
   bool m_doHotChi2{true};
   bool m_doHotMap{true};
   bool m_doAbortNoHotMap{false};
@@ -121,13 +115,13 @@ class CaloTowerStatus : public SubsysReco
   std::string m_directURL_chi2;
 
   float badChi2_treshold_const = {1e4};
-  float badChi2_treshold_quadratic = {1./100};
+  float badChi2_treshold_quadratic = {1. / 100};
   float badChi2_treshold_max = {1e8};
   float fraction_badChi2_threshold = {0.01};
   float z_score_threshold = {5};
   float z_score_threshold_default = {5};
 
-  void LoadCalib();
+  void LoadCalib(CDBTTree *cdbttree_chi2, CDBTTree *cdbttree_hotMap);
 
   struct CDBInfo
   {
